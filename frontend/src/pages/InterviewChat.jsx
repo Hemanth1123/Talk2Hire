@@ -147,7 +147,7 @@ export default function InterviewQuiz() {
     <div className="interview-container">
       <h2 className="interview-title">AI Interview – {interview.topicName}</h2>
       <p className="interview-points">
-        Points: <strong>{interview.points ?? "Test not started"}</strong>
+        Points: <strong>{interview.points}</strong>
       </p>
 
       {stage === "intro" && (

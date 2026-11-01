@@ -12,7 +12,7 @@
   display: flex;
   justify-content: space-between; /* Title on left, button on right */
   align-items: center;
-  gap: 145vh;
+  gap: 130vh;
   margin-bottom: 35px;
   border-bottom: 2px solid #e5e7eb;
   padding-bottom: 10px;

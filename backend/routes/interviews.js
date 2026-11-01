@@ -168,17 +168,66 @@ router.patch(
 );
 
 // --- Start AI Interview ---
+// router.post("/:id/start", auth, validateInterviewId, async (req, res) => {
+//   try {
+//     const interview = await Interview.findById(req.params.id).populate(
+//       "topic",
+//       "name"
+//     );
+//     if (!interview) return res.status(404).json({ msg: "Interview not found" });
+//     if (interview.user.toString() !== req.user.id)
+//       return res.status(401).json({ msg: "Not authorized" });
+
+//     const initialGreeting = `Hello, welcome to your ${interview.topic.name} interview. Tell me about yourself.`;
+//     interview.chatHistory.push({ sender: "ai", message: initialGreeting });
+//     await interview.save();
+
+//     res.json({
+//       success: true,
+//       text: initialGreeting,
+//       audio: "PLACEHOLDER_AUDIO_BASE64",
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send("Server Error");
+//   }
+// });
+
 router.post("/:id/start", auth, validateInterviewId, async (req, res) => {
   try {
-    const interview = await Interview.findById(req.params.id).populate(
-      "topic",
-      "name"
-    );
+    const interview = await Interview.findById(req.params.id).populate("topic", "name");
     if (!interview) return res.status(404).json({ msg: "Interview not found" });
+
     if (interview.user.toString() !== req.user.id)
       return res.status(401).json({ msg: "Not authorized" });
 
+    if (interview.status !== "Accepted")
+      return res.status(400).json({ msg: "Interview not approved yet" });
+
+    const scheduledAt = getScheduledDateTime(interview);
+    const now = new Date();
+
+    // ⏰ Allow starting 10 minutes before slot
+    const startWindow = new Date(scheduledAt.getTime() - 10 * 60000);
+
+    // ⏰ Interview expires 1 hour after slot time
+    const endWindow = new Date(scheduledAt.getTime() + 60 * 60000);
+
+    if (now < startWindow) {
+      return res.status(400).json({
+        msg: "Interview has not started yet",
+        scheduledTime: scheduledAt,
+      });
+    }
+
+    if (now > endWindow) {
+      return res.status(400).json({ msg: "Interview time expired" });
+    }
+
+    interview.status = "In-Progress";
+
     const initialGreeting = `Hello, welcome to your ${interview.topic.name} interview. Tell me about yourself.`;
+
     interview.chatHistory.push({ sender: "ai", message: initialGreeting });
     await interview.save();
 
@@ -192,6 +241,7 @@ router.post("/:id/start", auth, validateInterviewId, async (req, res) => {
     res.status(500).send("Server Error");
   }
 });
+
 
 // --- Interact in AI interview ---
 router.post("/:id/interact", auth, validateInterviewId, async (req, res) => {

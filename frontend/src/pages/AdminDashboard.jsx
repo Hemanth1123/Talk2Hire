@@ -53,8 +53,8 @@ export default function AdminDashboard() {
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <h2>Admin Interview Management</h2>
-        <p className="subtitle">Monitor and manage all interview requests</p>
+        <h2>Admin Management</h2>
+        <p className="subtitle">Monitor Interviews</p>
       </div>
 
       {interviews.length === 0 ? (
